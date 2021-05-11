@@ -13,24 +13,18 @@ export default class Aavegotchis {
     if (this.gotchis?.length > 0) return this.gotchis;
 
     const gotchiRes = await this.ethers.getAavegotchisForUser();
-    const gotchisWithSprites = await this.getAllAavegotchiSprites(gotchiRes);
+    const gotchisWithSprites = await this.getAllAavegotchiSVGs(gotchiRes);
     this.gotchis = gotchisWithSprites;
     return gotchisWithSprites;
   };
 
-  private getAllAavegotchiSprites = async (
-    gotchis: Array<AavegotchiContractObject>,
-  ): Promise<Array<AavegotchiObject>> => {
+  private getAllAavegotchiSVGs = async (gotchis: Array<AavegotchiContractObject>): Promise<Array<AavegotchiObject>> => {
     return Promise.all(
       gotchis.map(async (gotchi) => {
         const svg = await this.ethers.getAavegotchiSvg(gotchi.tokenId);
-        const blob = new Blob([svg], { type: 'image/png' });
-        const png = URL.createObjectURL(blob);
-
         return {
           ...gotchi,
           svg,
-          png,
         };
       }),
     );

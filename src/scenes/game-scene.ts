@@ -1,5 +1,5 @@
-import { Input } from 'phaser';
 import { getGameWidth, getGameHeight } from '../helpers';
+import { AavegotchiObject } from '../types';
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
   active: false,
@@ -12,14 +12,19 @@ export class GameScene extends Phaser.Scene {
 
   private cursorKeys: Phaser.Types.Input.Keyboard.CursorKeys;
   private image: Phaser.Physics.Arcade.Sprite;
+  private selectedGotchi: AavegotchiObject;
 
   constructor() {
     super(sceneConfig);
   }
 
+  init = (data: { selectedGotchi: AavegotchiObject }): void => {
+    this.selectedGotchi = data.selectedGotchi;
+  };
+
   public create(): void {
     // Add a player sprite that can be moved around. Place him in the middle of the screen.
-    this.image = this.physics.add.sprite(getGameWidth(this) / 2, getGameHeight(this) / 2, 'man');
+    this.image = this.physics.add.sprite(getGameWidth(this) / 2, getGameHeight(this) / 2, this.selectedGotchi.imageKey);
 
     // This is a nice helper Phaser provides to create listeners for some of the most common keys.
     this.cursorKeys = this.input.keyboard.createCursorKeys();

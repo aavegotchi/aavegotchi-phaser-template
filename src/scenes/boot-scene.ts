@@ -1,7 +1,8 @@
-import { getGameWidth, getGameHeight } from '../helpers';
+import { convertInlineSVGToBlob } from '../helpers';
 import Aavegotchis from '../interfaces/aavegotchi';
 import Ethers from '../web3/ethers';
 import * as KEYS from '../../assets';
+import { AavegotchiObject } from '../types';
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
   active: false,
@@ -10,72 +11,33 @@ const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
 };
 
 /**
- * The initial scene that loads all necessary assets to the game and displays a loading bar.
+ * The initial scene that loads all necessary assets to the game.
  */
 export class BootScene extends Phaser.Scene {
+  gotchis: Array<AavegotchiObject>;
+
   constructor() {
     super(sceneConfig);
   }
 
-  public preload = async (): Promise<void> => {
-    const halfWidth = getGameWidth(this) * 0.5;
-    const halfHeight = getGameHeight(this) * 0.5;
-
-    const progressBarHeight = 100;
-    const progressBarWidth = 400;
-
-    const progressBarContainer = this.add.rectangle(
-      halfWidth,
-      halfHeight,
-      progressBarWidth,
-      progressBarHeight,
-      0x000000,
-    );
-    const progressBar = this.add.rectangle(
-      halfWidth + 20 - progressBarContainer.width * 0.5,
-      halfHeight,
-      10,
-      progressBarHeight - 20,
-      0x888888,
-    );
-
-    const loadingText = this.add.text(halfWidth - 75, halfHeight - 100, 'Loading...').setFontSize(24);
-    const percentText = this.add.text(halfWidth - 25, halfHeight, '0%').setFontSize(24);
-    const assetText = this.add.text(halfWidth - 25, halfHeight + 100, '').setFontSize(24);
-
-    this.load.on('progress', (value) => {
-      progressBar.width = (progressBarWidth - 30) * value;
-
-      const percent = value * 100;
-      percentText.setText(`${percent}%`);
-    });
-
-    this.load.on('fileprogress', (file) => {
-      assetText.setText(file.key);
-    });
-
-    this.load.on('complete', () => {
-      loadingText.destroy();
-      percentText.destroy();
-      assetText.destroy();
-      progressBar.destroy();
-      progressBarContainer.destroy();
-    });
-
-    await this.loadAssets();
-  };
-
-  /**
-   * All assets that need to be loaded by the game (sprites, images, animations, tiles, music, etc)
-   * should be added to this method. Once loaded in, the loader will keep track of them, indepedent of which scene
-   * is currently active, so they can be accessed anywhere.
-   */
-  private loadAssets = async () => {
-    // Load local assets
+  public preload = (): void => {
     this.load.image(KEYS.MAN, 'assets/sprites/character.png');
     this.load.image(KEYS.BG, 'assets/images/bg.png');
     this.load.image(KEYS.AAVEGOTCHI_LOGO, 'assets/images/aavegotchiLogo.png');
 
+    this.load.on(
+      'filecomplete',
+      (key: string) => {
+        if (key === this.gotchis[this.gotchis.length - 1].imageKey) {
+          this.scene.start('MainMenu', { gotchis: this.gotchis });
+        }
+      },
+      this,
+    );
+    this.loadAssetsFromChain();
+  };
+
+  private loadAssetsFromChain = async () => {
     // Load assets from chain
     await this.connectToNetwork();
     const ethers = new Ethers();
@@ -83,14 +45,17 @@ export class BootScene extends Phaser.Scene {
 
     if (network.chainId === 137) {
       const gotchiFactory = new Aavegotchis(ethers);
-      const gotchis = await gotchiFactory.getGotchis();
-      console.log('Loaded gotchis:', gotchis);
-      gotchis.forEach((gotchi, i) => {
-        this.load.image(`gotchi_${i}`, gotchi.png);
-      });
-    }
+      this.gotchis = await gotchiFactory.getGotchis();
 
-    this.scene.start('MainMenu');
+      this.gotchis.forEach((gotchi, i) => {
+        const key = `gotchi_${i}`;
+        this.gotchis[i].imageKey = key;
+        this.load.image(key, convertInlineSVGToBlob(gotchi.svg));
+        this.load.start();
+      });
+    } else {
+      this.scene.start('MainMenu', { error: 'Not connected to the Matic network' });
+    }
   };
 
   public connectToNetwork = async (): Promise<void> => {
