@@ -1,6 +1,11 @@
 import { ethers } from 'ethers';
 
-export interface AavegotchiObject {
+export interface AavegotchiObject extends AavegotchiContractObject {
+  svg: string;
+  png: string;
+}
+
+export interface AavegotchiContractObject {
   collateral: string;
   name: string;
   modifiedNumericTraits: number[];

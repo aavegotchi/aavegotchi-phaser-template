@@ -1,6 +1,6 @@
-import { ethers } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import diamondAbi from '../abi/diamond.json';
-import { AavegotchiObject } from '../types';
+import { AavegotchiContractObject } from '../types';
 const aavegotchiAddress = '0x86935F11C86623deC8a25696E1C19a8659CbF95d';
 
 declare global {
@@ -28,13 +28,13 @@ export default class Ethers {
     return this.provider.getNetwork();
   }
 
-  public getAavegotchisForUser = async (): Promise<AavegotchiObject[]> => {
+  public getAavegotchisForUser = async (): Promise<AavegotchiContractObject[]> => {
     const account = await this.address;
     const gotchis = await this.contract.allAavegotchisOfOwner(account);
     return gotchis;
   };
 
-  public getAavegotchiSVG = async (tokenId: string): Promise<string> => {
+  public getAavegotchiSvg = async (tokenId: BigNumber): Promise<string> => {
     const svg = await this.contract.getAavegotchiSvg(tokenId);
     return svg;
   };
