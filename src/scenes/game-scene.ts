@@ -23,8 +23,13 @@ export class GameScene extends Phaser.Scene {
   };
 
   public create(): void {
+    console.log(this.selectedGotchi.noBGImageKey);
     // Add a player sprite that can be moved around. Place him in the middle of the screen.
-    this.image = this.physics.add.sprite(getGameWidth(this) / 2, getGameHeight(this) / 2, this.selectedGotchi.imageKey);
+    this.image = this.physics.add.sprite(
+      getGameWidth(this) / 2,
+      getGameHeight(this) / 2,
+      this.selectedGotchi.noBGImageKey,
+    );
 
     // This is a nice helper Phaser provides to create listeners for some of the most common keys.
     this.cursorKeys = this.input.keyboard.createCursorKeys();

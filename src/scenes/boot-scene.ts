@@ -21,14 +21,14 @@ export class BootScene extends Phaser.Scene {
   }
 
   public preload = (): void => {
-    this.load.image(KEYS.MAN, 'assets/sprites/character.png');
     this.load.image(KEYS.BG, 'assets/images/bg.png');
     this.load.image(KEYS.AAVEGOTCHI_LOGO, 'assets/images/aavegotchiLogo.png');
 
     this.load.on(
       'filecomplete',
       (key: string) => {
-        if (key === this.gotchis[this.gotchis.length - 1].imageKey) {
+        console.log(key);
+        if (this.gotchis && key === this.gotchis[this.gotchis.length - 1].imageKey) {
           this.scene.start('MainMenu', { gotchis: this.gotchis });
         }
       },
@@ -49,8 +49,13 @@ export class BootScene extends Phaser.Scene {
 
       this.gotchis.forEach((gotchi, i) => {
         const key = `gotchi_${i}`;
+        const noBGKey = `nobg_gotchi_${i}`;
+
+        // Load image assets into Phaser
         this.gotchis[i].imageKey = key;
+        this.gotchis[i].noBGImageKey = noBGKey;
         this.load.image(key, convertInlineSVGToBlob(gotchi.svg));
+        this.load.image(noBGKey, convertInlineSVGToBlob(gotchi.svgNoBg));
         this.load.start();
       });
     } else {
