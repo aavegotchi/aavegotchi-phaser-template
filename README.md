@@ -1,4 +1,4 @@
-# Phaser 3 + TypeScript Starter Kit
+# Aavegotchi Phaser 3 + TypeScript Starter Kit
 
 This repository contains all the code necessary to start making an Aavegotchi game in Phaser 3 using TypeScript + Ethers.js.
 
