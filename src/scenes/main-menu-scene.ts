@@ -1,6 +1,5 @@
-import { MenuButton } from '../ui/menu-button';
 import { getGameWidth, getGameHeight } from '../helpers';
-import { BG, AAVEGOTCHI_LOGO } from '../../assets';
+import { BG, AAVEGOTCHI_LOGO, CLICK } from '../../assets';
 import { AavegotchiObject } from '../types';
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
@@ -9,12 +8,11 @@ const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
   key: 'MainMenu',
 };
 
-/**
- * The initial scene that starts, shows the splash screens, and loads the necessary assets.
- */
 export class MainMenuScene extends Phaser.Scene {
   private gotchis: AavegotchiObject[];
   private error: string | undefined;
+
+  public click: Phaser.Sound.BaseSound;
 
   constructor() {
     super(sceneConfig);
@@ -27,6 +25,7 @@ export class MainMenuScene extends Phaser.Scene {
   };
 
   public create = async (): Promise<void> => {
+    this.click = this.sound.add(CLICK, { loop: false });
     this.add.image(getGameWidth(this) / 2, getGameHeight(this) / 2, BG);
     this.add.image(getGameWidth(this) / 2, 135, AAVEGOTCHI_LOGO).setScale(0.4);
 
@@ -58,7 +57,10 @@ export class MainMenuScene extends Phaser.Scene {
         .image(xPos, getGameHeight(this) / 2 + 50, gotchi.imageKey)
         .setScale(1.4)
         .setInteractive({ useHandCursor: true })
-        .on('pointerup', () => this.scene.start('Game', { selectedGotchi: gotchi }));
+        .on('pointerup', () => {
+          this.click.play();
+          this.scene.start('Game', { selectedGotchi: gotchi });
+        });
       this.add
         .text(xPos, getGameHeight(this) / 2 + 190, gotchi.name, {
           color: '#FFFFFF',

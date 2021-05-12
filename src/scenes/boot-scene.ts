@@ -21,15 +21,22 @@ export class BootScene extends Phaser.Scene {
   }
 
   public preload = (): void => {
+    this.loadInSounds();
     this.load.image(KEYS.BG, 'assets/images/bg.png');
     this.load.image(KEYS.AAVEGOTCHI_LOGO, 'assets/images/aavegotchiLogo.png');
 
     this.load.on(
       'filecomplete',
       (key: string) => {
-        console.log(key);
-        if (this.gotchis && key === this.gotchis[this.gotchis.length - 1].imageKey) {
-          this.scene.start('MainMenu', { gotchis: this.gotchis });
+        // Make sure each gotchi image asset is loaded in before starting game
+        if (this.gotchis && key.includes('gotchi_')) {
+          const index = Number(key.replace(/\D/g, ''));
+
+          if (index === this.gotchis.length - 1) {
+            this.scene.start('MainMenu', { gotchis: this.gotchis });
+          } else {
+            this.loadInGotchiImage(index + 1);
+          }
         }
       },
       this,
@@ -47,23 +54,44 @@ export class BootScene extends Phaser.Scene {
       const gotchiFactory = new Aavegotchis(ethers);
       this.gotchis = await gotchiFactory.getGotchis();
 
-      this.gotchis.forEach((gotchi, i) => {
-        const key = `gotchi_${i}`;
-        const noBGKey = `nobg_gotchi_${i}`;
+      if (!this.gotchis || this.gotchis.length === 0) {
+        this.scene.start('MainMenu', { error: 'You have no gotchis in your wallet.' });
+      }
 
-        // Load image assets into Phaser
-        this.gotchis[i].imageKey = key;
-        this.gotchis[i].noBGImageKey = noBGKey;
-        this.load.image(key, convertInlineSVGToBlob(gotchi.svg));
-        this.load.image(noBGKey, convertInlineSVGToBlob(gotchi.svgNoBg));
-        this.load.start();
+      // Assign image keys
+      this.gotchis = this.gotchis.map((gotchi, i) => {
+        return {
+          ...gotchi,
+          imageKey: `gotchi_${i}`,
+          noBGImageKey: `nobg_gotchi_${i}`,
+        };
       });
+
+      this.loadInGotchiImage(0);
     } else {
-      this.scene.start('MainMenu', { error: 'Not connected to the Matic network' });
+      this.scene.start('MainMenu', { error: 'Not connected to the Matic network.' });
     }
   };
 
   public connectToNetwork = async (): Promise<void> => {
     await window.ethereum.enable();
+  };
+
+  private loadInGotchiImage = (i: number) => {
+    const gotchi = this.gotchis[i];
+    this.load.image(gotchi.imageKey, convertInlineSVGToBlob(gotchi.svg));
+    this.load.image(gotchi.noBGImageKey, convertInlineSVGToBlob(gotchi.svgNoBg));
+    this.load.start();
+  };
+
+  private loadInSounds = () => {
+    this.load.audio(KEYS.SUCCESS, ['assets/sounds/success.mp3']);
+    this.load.audio(KEYS.BOOP, ['assets/sounds/boop.mp3']);
+    this.load.audio(KEYS.CLICK, ['assets/sounds/click.mp3']);
+    this.load.audio(KEYS.OOPS, ['assets/sounds/oops.mp3']);
+    this.load.audio(KEYS.PORTAL_OPEN, ['assets/sounds/portalOpen.mp3']);
+    this.load.audio(KEYS.PORTAL_OPENED, ['assets/sounds/portalOpened.mp3']);
+    this.load.audio(KEYS.SEND, ['assets/sounds/send.mp3']);
+    this.load.audio(KEYS.SENDING, ['assets/sounds/sending.mp3']);
   };
 }
