@@ -1,4 +1,4 @@
-import { convertInlineSVGToBlob } from '../helpers';
+import { removeBackground, constructSpritesheet, addIdleUp } from '../functions/spritesheets';
 import Aavegotchis from '../interfaces/aavegotchi';
 import Ethers from '../web3/ethers';
 import * as KEYS from '../../assets';
@@ -28,14 +28,15 @@ export class BootScene extends Phaser.Scene {
     this.load.on(
       'filecomplete',
       (key: string) => {
+        console.log(key);
         // Make sure each gotchi image asset is loaded in before starting game
-        if (this.gotchis && key.includes('gotchi_')) {
+        if (this.gotchis && key.includes('spritesheetBg_')) {
           const index = Number(key.replace(/\D/g, ''));
 
           if (index === this.gotchis.length - 1) {
             this.scene.start('MainMenu', { gotchis: this.gotchis });
           } else {
-            this.loadInGotchiImage(index + 1);
+            this.loadInGotchiImages(index + 1);
           }
         }
       },
@@ -59,15 +60,17 @@ export class BootScene extends Phaser.Scene {
       }
 
       // Assign image keys
-      this.gotchis = this.gotchis.map((gotchi, i) => {
-        return {
-          ...gotchi,
-          imageKey: `gotchi_${i}`,
-          noBGImageKey: `nobg_gotchi_${i}`,
-        };
-      });
+      this.gotchis = this.gotchis.map(
+        (gotchi, i): AavegotchiObject => {
+          return {
+            ...gotchi,
+            spritesheetKey: `spritesheet_${i}`,
+            spritesheetWithBGKey: `spritesheetBg_${i}`,
+          };
+        },
+      );
 
-      this.loadInGotchiImage(0);
+      await this.loadInGotchiImages(0);
     } else {
       this.scene.start('MainMenu', { error: 'Not connected to the Matic network.' });
     }
@@ -77,10 +80,19 @@ export class BootScene extends Phaser.Scene {
     await window.ethereum.enable();
   };
 
-  private loadInGotchiImage = (i: number) => {
+  private loadInGotchiImages = async (i: number) => {
     const gotchi = this.gotchis[i];
-    this.load.image(gotchi.imageKey, convertInlineSVGToBlob(gotchi.svg));
-    this.load.image(gotchi.noBGImageKey, convertInlineSVGToBlob(gotchi.svgNoBg));
+    const spritesheet = await constructSpritesheet(gotchi.svg, addIdleUp(gotchi.svg));
+    this.load.spritesheet(gotchi.spritesheetWithBGKey, spritesheet, {
+      frameWidth: 300 / 2,
+      frameHeight: 150 / 1,
+    });
+    const svgNoBg = removeBackground(gotchi.svg);
+    const spritesheetNoBg = await constructSpritesheet(svgNoBg, addIdleUp(svgNoBg));
+    this.load.spritesheet(gotchi.spritesheetKey, spritesheetNoBg, {
+      frameWidth: 300 / 2,
+      frameHeight: 150 / 1,
+    });
     this.load.start();
   };
 

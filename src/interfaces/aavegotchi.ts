@@ -22,18 +22,11 @@ export default class Aavegotchis {
     return Promise.all(
       gotchis.map(async (gotchi) => {
         const svg = await this.ethers.getAavegotchiSvg(gotchi.tokenId);
-        const svgNoBg = this.removeBackground(svg);
         return {
           ...gotchi,
           svg,
-          svgNoBg,
         };
       }),
     );
-  };
-
-  private removeBackground = (svg: string): string => {
-    const styledSvg = svg.replace('<style>', '<style>.gotchi-bg{display:none;}');
-    return styledSvg;
   };
 }

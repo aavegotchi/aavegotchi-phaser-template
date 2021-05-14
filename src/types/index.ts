@@ -2,9 +2,8 @@ import { ethers } from 'ethers';
 
 export interface AavegotchiObject extends AavegotchiContractObject {
   svg: string;
-  svgNoBg: string;
-  imageKey?: string;
-  noBGImageKey?: string;
+  spritesheetKey?: string;
+  spritesheetWithBGKey?: string;
 }
 
 export interface AavegotchiContractObject {

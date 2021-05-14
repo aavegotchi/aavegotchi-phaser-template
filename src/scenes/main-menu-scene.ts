@@ -1,4 +1,4 @@
-import { getGameWidth, getGameHeight } from '../helpers';
+import { getGameWidth, getGameHeight } from '../functions/helpers';
 import { BG, AAVEGOTCHI_LOGO, CLICK } from '../../assets';
 import { AavegotchiObject } from '../types';
 
@@ -41,7 +41,7 @@ export class MainMenuScene extends Phaser.Scene {
   };
 
   private createGotchiSelect = () => {
-    const panelWidth = 300;
+    const panelWidth = 250;
     const containerSize = this.gotchis.length * panelWidth;
 
     this.add
@@ -53,14 +53,33 @@ export class MainMenuScene extends Phaser.Scene {
 
     this.gotchis.forEach((gotchi, i) => {
       const xPos = (getGameWidth(this) - containerSize + panelWidth) / 2 + i * panelWidth;
-      this.add
-        .image(xPos, getGameHeight(this) / 2 + 50, gotchi.imageKey)
+      const sprite = this.add
+        .sprite(xPos, getGameHeight(this) / 2 + 50, gotchi.spritesheetWithBGKey, 1)
         .setScale(1.4)
-        .setInteractive({ useHandCursor: true })
+        .setInteractive({ useHandCursor: true });
+
+      // Set animations
+      sprite.anims.create({
+        key: 'idle',
+        frames: this.anims.generateFrameNumbers(gotchi.spritesheetWithBGKey, { start: 0, end: 1 }),
+        frameRate: 2,
+        repeat: -1,
+      });
+
+      // Set events
+      sprite
         .on('pointerup', () => {
           this.click.play();
           this.scene.start('Game', { selectedGotchi: gotchi });
+        })
+        .on('pointerover', () => {
+          sprite.anims.play('idle', true);
+        })
+        .on('pointerout', () => {
+          sprite.anims.stop();
         });
+
+      // Add name
       this.add
         .text(xPos, getGameHeight(this) / 2 + 190, gotchi.name, {
           color: '#FFFFFF',
