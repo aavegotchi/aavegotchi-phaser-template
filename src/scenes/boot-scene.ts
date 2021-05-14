@@ -24,6 +24,8 @@ export class BootScene extends Phaser.Scene {
     this.loadInSounds();
     this.load.image(KEYS.BG, 'assets/images/bg.png');
     this.load.image(KEYS.AAVEGOTCHI_LOGO, 'assets/images/aavegotchiLogo.png');
+    this.load.svg(KEYS.FULLSCREEN, 'assets/icons/fullscreen.svg');
+    this.load.svg(KEYS.BACK_CHEVRON, 'assets/icons/back.svg');
 
     this.load.on(
       'filecomplete',

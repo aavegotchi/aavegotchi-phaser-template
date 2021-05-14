@@ -1,5 +1,5 @@
 import { getGameWidth, getGameHeight } from '../functions/helpers';
-import { BG, AAVEGOTCHI_LOGO, CLICK } from '../../assets';
+import { BG, AAVEGOTCHI_LOGO, CLICK, FULLSCREEN, SEND } from '../../assets';
 import { AavegotchiObject } from '../types';
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
@@ -12,7 +12,9 @@ export class MainMenuScene extends Phaser.Scene {
   private gotchis: AavegotchiObject[];
   private error: string | undefined;
 
+  // Sounds
   public click: Phaser.Sound.BaseSound;
+  public submit: Phaser.Sound.BaseSound;
 
   constructor() {
     super(sceneConfig);
@@ -26,8 +28,10 @@ export class MainMenuScene extends Phaser.Scene {
 
   public create = async (): Promise<void> => {
     this.click = this.sound.add(CLICK, { loop: false });
+    this.submit = this.sound.add(SEND, { loop: false });
     this.add.image(getGameWidth(this) / 2, getGameHeight(this) / 2, BG);
     this.add.image(getGameWidth(this) / 2, 135, AAVEGOTCHI_LOGO).setScale(0.4);
+    this.createFullScreenToggle();
 
     if (this.error) {
       this.add
@@ -38,6 +42,21 @@ export class MainMenuScene extends Phaser.Scene {
         .setOrigin(0.5);
     }
     this.createGotchiSelect();
+  };
+
+  private createFullScreenToggle = () => {
+    this.add
+      .image(getGameWidth(this) - 54, getGameHeight(this) - 54, FULLSCREEN)
+      .setInteractive({ useHandCursor: true })
+      .setScale(0.4)
+      .on('pointerdown', () => {
+        this.click.play();
+        if (this.scale.isFullscreen) {
+          this.scale.stopFullscreen();
+        } else {
+          this.scale.startFullscreen();
+        }
+      });
   };
 
   private createGotchiSelect = () => {
@@ -69,7 +88,7 @@ export class MainMenuScene extends Phaser.Scene {
       // Set events
       sprite
         .on('pointerup', () => {
-          this.click.play();
+          this.submit.play();
           this.scene.start('Game', { selectedGotchi: gotchi });
         })
         .on('pointerover', () => {

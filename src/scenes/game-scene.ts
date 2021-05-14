@@ -1,3 +1,4 @@
+import { BACK_CHEVRON, CLICK } from '../../assets';
 import { getGameWidth, getGameHeight } from '../functions/helpers';
 import { AavegotchiObject } from '../types';
 
@@ -14,6 +15,9 @@ export class GameScene extends Phaser.Scene {
   private player: Phaser.Physics.Arcade.Sprite;
   private selectedGotchi: AavegotchiObject;
 
+  // Sounds
+  public back: Phaser.Sound.BaseSound;
+
   constructor() {
     super(sceneConfig);
   }
@@ -23,6 +27,9 @@ export class GameScene extends Phaser.Scene {
   };
 
   public create(): void {
+    this.back = this.sound.add(CLICK, { loop: false });
+    this.createBackButton();
+
     // Add a player sprite that can be moved around. Place him in the middle of the screen.
     this.player = this.physics.add.sprite(
       getGameWidth(this) / 2,
@@ -41,10 +48,22 @@ export class GameScene extends Phaser.Scene {
     this.cursorKeys = this.input.keyboard.createCursorKeys();
   }
 
+  private createBackButton = () => {
+    this.add
+      .image(54, 54, BACK_CHEVRON)
+      .setInteractive({ useHandCursor: true })
+      .setScale(0.4)
+      .on('pointerdown', () => {
+        this.back.play();
+        this.scene.start('MainMenu');
+      });
+  };
+
   public update(): void {
     // Every frame, we create a new velocity for the sprite based on what keys the player is holding down.
     const velocity = new Phaser.Math.Vector2(0, 0);
 
+    // Horizontal movement
     switch (true) {
       case this.cursorKeys.left.isDown:
         velocity.x -= 1;
@@ -54,6 +73,12 @@ export class GameScene extends Phaser.Scene {
         velocity.x += 1;
         this.player.anims.play('idle', false);
         break;
+      default:
+        this.player.anims.play('idle', true);
+    }
+
+    // Vertical movement
+    switch (true) {
       case this.cursorKeys.down.isDown:
         velocity.y += 1;
         this.player.anims.play('idle', false);

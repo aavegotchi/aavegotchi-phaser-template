@@ -1,6 +1,10 @@
 export const BG = 'bg';
 export const AAVEGOTCHI_LOGO = 'aavegotchi_logo';
 
+// Icons
+export const FULLSCREEN = 'fullscreen';
+export const BACK_CHEVRON = 'back_chevron';
+
 // Sounds
 export const BOOP = 'boop';
 export const CLICK = 'click';
