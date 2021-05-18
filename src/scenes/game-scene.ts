@@ -1,4 +1,4 @@
-import { BACK_CHEVRON, CLICK } from '../../assets';
+import { LEFT_CHEVRON, CLICK } from '../../assets';
 import { getGameWidth, getGameHeight } from '../functions/helpers';
 import { AavegotchiObject } from '../types';
 
@@ -50,7 +50,7 @@ export class GameScene extends Phaser.Scene {
 
   private createBackButton = () => {
     this.add
-      .image(54, 54, BACK_CHEVRON)
+      .image(54, 54, LEFT_CHEVRON)
       .setInteractive({ useHandCursor: true })
       .setScale(0.4)
       .on('pointerdown', () => {

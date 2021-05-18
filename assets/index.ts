@@ -3,7 +3,8 @@ export const AAVEGOTCHI_LOGO = 'aavegotchi_logo';
 
 // Icons
 export const FULLSCREEN = 'fullscreen';
-export const BACK_CHEVRON = 'back_chevron';
+export const LEFT_CHEVRON = 'left_chevron';
+export const RIGHT_CHEVRON = 'right_chevron';
 
 // Sounds
 export const BOOP = 'boop';

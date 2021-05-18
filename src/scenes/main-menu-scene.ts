@@ -1,6 +1,7 @@
 import { getGameWidth, getGameHeight } from '../functions/helpers';
-import { BG, AAVEGOTCHI_LOGO, CLICK, FULLSCREEN, SEND } from '../../assets';
+import { BG, AAVEGOTCHI_LOGO, CLICK, FULLSCREEN, SEND, LEFT_CHEVRON, RIGHT_CHEVRON } from '../../assets';
 import { AavegotchiObject } from '../types';
+import { MenuButton } from '../ui/menu-button';
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
   active: false,
@@ -10,6 +11,12 @@ const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
 
 export class MainMenuScene extends Phaser.Scene {
   private gotchis: AavegotchiObject[];
+  private selectedGotchiIndex: number;
+  private selectedGotchi: Phaser.GameObjects.Sprite;
+  private selectedGotchiName: Phaser.GameObjects.Text;
+  private selectedIndicator: Phaser.GameObjects.Text;
+
+  // UI
   private error: string | undefined;
 
   // Sounds
@@ -22,7 +29,6 @@ export class MainMenuScene extends Phaser.Scene {
 
   init = (data: { gotchis: AavegotchiObject[]; error?: string }): void => {
     this.error = data.error;
-    console.log('init', data);
     this.gotchis = data.gotchis;
   };
 
@@ -33,6 +39,8 @@ export class MainMenuScene extends Phaser.Scene {
     this.add.image(getGameWidth(this) / 2, 135, AAVEGOTCHI_LOGO).setScale(0.4);
     this.createFullScreenToggle();
 
+    this.selectedGotchiIndex = 0;
+
     if (this.error) {
       this.add
         .text(getGameWidth(this) / 2, getGameHeight(this) / 2, `Error: ${this.error}`, {
@@ -42,6 +50,11 @@ export class MainMenuScene extends Phaser.Scene {
         .setOrigin(0.5);
     }
     this.createGotchiSelect();
+
+    new MenuButton(this, getGameWidth(this) / 2, getGameHeight(this) - 200, 'START', () => {
+      this.submit.play();
+      this.scene.start('Game', { selectedGotchi: this.gotchis[this.selectedGotchiIndex] });
+    });
   };
 
   private createFullScreenToggle = () => {
@@ -59,52 +72,96 @@ export class MainMenuScene extends Phaser.Scene {
       });
   };
 
-  private createGotchiSelect = () => {
-    const panelWidth = 250;
-    const containerSize = this.gotchis.length * panelWidth;
-
+  private createArrowRight = () => {
     this.add
-      .text(getGameWidth(this) / 2, getGameHeight(this) / 2 - 130, `Select your character:`, {
+      .image(getGameWidth(this) / 2 + 175, getGameHeight(this) / 2, RIGHT_CHEVRON)
+      .setDisplaySize(54, 54)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => {
+        this.click.play();
+        const index = this.selectedGotchiIndex + 1;
+        this.selectedGotchiIndex = index >= this.gotchis.length ? 0 : index;
+        this.updateSelectedGotchi(this.selectedGotchiIndex);
+      });
+  };
+
+  private createArrowLeft = () => {
+    this.add
+      .image(getGameWidth(this) / 2 - 175, getGameHeight(this) / 2, LEFT_CHEVRON)
+      .setDisplaySize(54, 54)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => {
+        this.click.play();
+        const index = this.selectedGotchiIndex + 1;
+        this.selectedGotchiIndex = index >= this.gotchis.length ? 0 : index;
+        this.updateSelectedGotchi(this.selectedGotchiIndex);
+      });
+  };
+
+  private updateSelectedGotchi = (index: number) => {
+    this.selectedGotchi.setTexture(this.gotchis[index].spritesheetWithBGKey, 1);
+    this.selectedGotchiName.text = this.gotchis[index].name;
+    this.selectedIndicator.text = `${index + 1}/${this.gotchis.length}`;
+    this.selectedGotchi.anims.create({
+      key: `idle_${index}`,
+      frames: this.anims.generateFrameNumbers(this.gotchis[index].spritesheetWithBGKey, {
+        start: 0,
+        end: 1,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+    this.selectedGotchi.anims.play(`idle_${index}`);
+  };
+
+  private createSelectedGotchi = (index: number) => {
+    this.selectedGotchi = this.add
+      .sprite(getGameWidth(this) / 2, getGameHeight(this) / 2, this.gotchis[index].spritesheetWithBGKey, 1)
+      .setScale(1.4);
+
+    // Set animations
+    this.selectedGotchi.anims.create({
+      key: `idle_${index}`,
+      frames: this.anims.generateFrameNumbers(this.gotchis[index].spritesheetWithBGKey, {
+        start: 0,
+        end: 1,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+
+    this.selectedGotchi.anims.play(`idle_${index}`);
+
+    // Add name
+    this.selectedGotchiName = this.add
+      .text(getGameWidth(this) / 2, getGameHeight(this) / 2 + 140, this.gotchis[index].name, {
         color: '#FFFFFF',
       })
-      .setFontSize(44)
+      .setFontSize(32)
       .setOrigin(0.5);
 
-    this.gotchis.forEach((gotchi, i) => {
-      const xPos = (getGameWidth(this) - containerSize + panelWidth) / 2 + i * panelWidth;
-      const sprite = this.add
-        .sprite(xPos, getGameHeight(this) / 2 + 50, gotchi.spritesheetWithBGKey, 1)
-        .setScale(1.4)
-        .setInteractive({ useHandCursor: true });
-
-      // Set animations
-      sprite.anims.create({
-        key: 'idle',
-        frames: this.anims.generateFrameNumbers(gotchi.spritesheetWithBGKey, { start: 0, end: 1 }),
-        frameRate: 2,
-        repeat: -1,
-      });
-
-      // Set events
-      sprite
-        .on('pointerup', () => {
-          this.submit.play();
-          this.scene.start('Game', { selectedGotchi: gotchi });
-        })
-        .on('pointerover', () => {
-          sprite.anims.play('idle', true);
-        })
-        .on('pointerout', () => {
-          sprite.anims.stop();
-        });
-
-      // Add name
-      this.add
-        .text(xPos, getGameHeight(this) / 2 + 190, gotchi.name, {
+    this.selectedIndicator = this.add
+      .text(
+        getGameWidth(this) / 2,
+        getGameHeight(this) / 2 + 172,
+        `${this.selectedGotchiIndex + 1}/${this.gotchis.length}`,
+        {
           color: '#FFFFFF',
-        })
-        .setFontSize(32)
-        .setOrigin(0.5);
-    });
+        },
+      )
+      .setFontSize(24)
+      .setOrigin(0.5);
+  };
+
+  private createGotchiSelect = () => {
+    this.createArrowLeft();
+    this.createArrowRight();
+    this.add
+      .text(getGameWidth(this) / 2, getGameHeight(this) / 2 - 150, `Select character:`, {
+        color: '#FFFFFF',
+      })
+      .setFontSize(34)
+      .setOrigin(0.5);
+    this.createSelectedGotchi(this.selectedGotchiIndex);
   };
 }
