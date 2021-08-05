@@ -19,7 +19,7 @@ export const convertInlineSVGToBlobURL = (svg: string): string => {
 };
 
 export const removeBackground = (svg: string): string => {
-  const styledSvg = svg.replace('<style>', '<style>.gotchi-bg{display:none;}');
+  const styledSvg = svg.replace('<style>', '<style>.gotchi-bg,.wearable-bg{display:none;}');
   return styledSvg;
 };
 
